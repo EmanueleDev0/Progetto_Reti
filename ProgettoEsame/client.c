@@ -6,6 +6,7 @@
 
 #define PORT 8080
 #define BUFFER_SIZE 1024
+#define ADMIN_PASSWORD "0000"
 
 void create_record(int sock);
 void read_records(int sock, char mode);
@@ -48,6 +49,28 @@ int main() {
     printf("Scelta: ");
     scanf("%c", &mode);
     getchar(); // per consumare il newline lasciato da scanf
+
+   if (mode == 'A' || mode == 'a') {
+    char password[20]; // Dimensione della password
+    int password_attempts = 3; // Numero massimo di tentativi
+    while (password_attempts > 0) {
+        printf("Inserisci la password: ");
+        scanf("%s", password);
+        getchar(); // per consumare il newline lasciato da scanf
+        
+        if (strcmp(password, ADMIN_PASSWORD) == 0) {
+            break; // Esci dal loop se la password è corretta
+        } else {
+            printf("Accesso negato. Password errata. Riprova.\n");
+            password_attempts--;
+            if (password_attempts == 0) {
+                printf("Hai esaurito tutti i tentativi. Il programma verrà chiuso.\n");
+                close(sock);
+                return -1;
+            }
+        }
+    }
+}
 
     while (1) {
         if (mode == 'A' || mode == 'a') {
