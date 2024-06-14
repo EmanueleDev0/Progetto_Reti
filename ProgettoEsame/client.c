@@ -378,7 +378,7 @@ void delete_record(int sock) {
     // Invio della query al server
     send(sock, query, strlen(query), 0);
 
-    // Lettura della risposta dal server (facoltativa, dipende dal tuo implementazione del server)
+    // Lettura della risposta dal server 
     char response[BUFFER_SIZE] = {0};
     int valread = read(sock, response, BUFFER_SIZE);
     printf("%s\n", response); // Stampa la risposta del server
