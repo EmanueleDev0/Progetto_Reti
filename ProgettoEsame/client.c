@@ -2,11 +2,36 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <termios.h>  // Per la funzione getch() in modo da leggere i caratteri senza mostrarli sullo schermo
 #include <arpa/inet.h>
 
 #define PORT 8080
 #define BUFFER_SIZE 1024
 #define ADMIN_PASSWORD "0000"
+
+// Funzione per leggere la password senza mostrarla sullo schermo
+void get_password(char *password, int size) {
+    struct termios oldt, newt;
+    int i = 0;
+    int ch;
+
+    // Disabilita l'echo
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+    // Legge i caratteri uno per uno
+    while (i < size - 1 && (ch = getchar()) != '\n' && ch != EOF) {
+        password[i++] = ch;
+        printf("*"); // Mostra un asterisco per ogni carattere inserito
+    }
+    password[i] = '\0';
+
+    // Riabilita l'echo
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    printf("\n");
+}
 
 void create_record(int sock);
 void read_records(int sock, char mode);
@@ -50,27 +75,27 @@ int main() {
     scanf("%c", &mode);
     getchar(); // per consumare il newline lasciato da scanf
 
-   if (mode == 'A' || mode == 'a') {
-    char password[20]; // Dimensione della password
-    int password_attempts = 3; // Numero massimo di tentativi
-    while (password_attempts > 0) {
-        printf("Inserisci la password: ");
-        scanf("%s", password);
-        getchar(); // per consumare il newline lasciato da scanf
-        
-        if (strcmp(password, ADMIN_PASSWORD) == 0) {
-            break; // Esci dal loop se la password è corretta
-        } else {
-            printf("Accesso negato. Password errata. Riprova.\n");
-            password_attempts--;
-            if (password_attempts == 0) {
-                printf("Hai esaurito tutti i tentativi. Il programma verrà chiuso.\n");
-                close(sock);
-                return -1;
+    if (mode == 'A' || mode == 'a') {
+        char password[20]; // Dimensione della password
+        int password_attempts = 3; // Numero massimo di tentativi
+
+        while (password_attempts > 0) {
+            printf("Inserisci la password: ");
+            get_password(password, sizeof(password)); // Usa la nuova funzione per leggere la password mascherata
+            
+            if (strcmp(password, ADMIN_PASSWORD) == 0) {
+                break; // Esci dal loop se la password è corretta
+            } else {
+                printf("Accesso negato. Password errata. Riprova.\n");
+                password_attempts--;
+                if (password_attempts == 0) {
+                    printf("Hai esaurito tutti i tentativi. Il programma verrà chiuso.\n");
+                    close(sock);
+                    return -1;
+                }
             }
         }
     }
-}
 
     while (1) {
         if (mode == 'A' || mode == 'a') {
