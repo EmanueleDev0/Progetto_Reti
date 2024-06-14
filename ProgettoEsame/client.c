@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <termios.h>  // Per la funzione getch() in modo da leggere i caratteri senza mostrarli sullo schermo
+#include <termios.h>  
 #include <arpa/inet.h>
 
 #define PORT 8080
